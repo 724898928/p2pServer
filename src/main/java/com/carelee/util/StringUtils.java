@@ -8,8 +8,8 @@ package com.carelee.util;
  * Copyright: Copyright (c) 2040
  */
 public class StringUtils {
-    public static boolean notEmtpy(String str) {
-        return null != str && str.length() == 0;
+    public static boolean notEmpty(String str) {
+        return null != str && str.length() >= 0;
     }
 
     public static String getStr(Object o){

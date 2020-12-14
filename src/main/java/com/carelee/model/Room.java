@@ -1,5 +1,8 @@
 package com.carelee.model;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Package: com.carelee.model
  * Description： TODO
@@ -9,39 +12,36 @@ package com.carelee.model;
  */
 public class Room {
     private String id;
-    private User user;
-    private Session session;
+    private Map<String, User> userMap = new ConcurrentHashMap<>();
 
+    public Room(String id ) {
+        this.id = id;
+    }
     public String getId() {
         return id;
     }
 
+    public void addUser(User user) {
+        if (null != user)
+        userMap.put(user.getId(), user);
+    }
+
+    public Map<String, User> users() {
+        return userMap;
+    }
+
+    public User getUser(String userId) {
+        return userMap.get(userId);
+    }
     public void setId(String id) {
         this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Session getSession() {
-        return session;
-    }
-
-    public void setSession(Session session) {
-        this.session = session;
     }
 
     @Override
     public String toString() {
         return "Room{" +
                 "id='" + id + '\'' +
-                ", user=" + user +
-                ", session=" + session +
+                ", userMap=" + userMap +
                 '}';
     }
 }
