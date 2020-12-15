@@ -126,7 +126,9 @@ public class RoomService {
             users.forEach((key, user) -> {
                 try {
                     log.info("notifyUsersUpdate jsonObject.toString() = " +json.toJSONString());
-                    user.getSession().getBasicRemote().sendText(json.toJSONString());
+                    if (user.getSession().isOpen()) {
+                        user.getSession().getBasicRemote().sendText(json.toJSONString());
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

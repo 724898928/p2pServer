@@ -17,7 +17,6 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,7 +35,7 @@ public class Socket {
     private static final Logger log = LogManager.getLogger(RoomService.class);
     // 静态变量，用来记录当前在线的连接数，应该把它设计成线程安全的
     private static AtomicInteger onlineCount = new AtomicInteger(0);
-    // oncurrent包的线程安全set，用来存放每个客户端对应的socket对象
+    // concurrent，用来存放每个客户端对应的socket对象
     private static CopyOnWriteArraySet<Socket> webSocketSet = new CopyOnWriteArraySet<Socket>();
     // 与某个客户端的连接会话，需要通过它来给客户发送数据
     private Session session;
