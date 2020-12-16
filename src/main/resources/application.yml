@@ -1,5 +1,5 @@
 server:
   port: 8806
   ssl:
-    key-store: src/main/resources/my.keystore
+    key-store: src/main/resources/server.keystore
     key-store-password: a1234567

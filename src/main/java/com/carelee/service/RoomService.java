@@ -59,7 +59,10 @@ public class RoomService {
         User toUser = room.getUser(to);
         if (null != toUser) {
             try {
-                toUser.getSession().getBasicRemote().sendText(msg.toJSONString());
+                Session session = toUser.getSession();
+                if (session.isOpen()){
+                    session.getBasicRemote().sendText(msg.toJSONString());
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -83,7 +86,10 @@ public class RoomService {
                 map.put("sessionId", sessionID);
                 json.put("data", map);
                 json.put("type", MsgContant.HANGUP);
-                user.getSession().getBasicRemote().sendText(json.toJSONString());
+                Session userSession = user.getSession();
+                if (userSession.isOpen()) {
+                    userSession.getBasicRemote().sendText(json.toJSONString());
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -95,7 +101,10 @@ public class RoomService {
             json.put("data", map);
             json.put("type", MsgContant.HANGUP);
             try {
-                user1.getSession().getBasicRemote().sendText(json.toJSONString());
+                Session user1Session = user.getSession();
+                if (user1Session.isOpen()) {
+                    user1Session.getBasicRemote().sendText(json.toJSONString());
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -125,9 +134,10 @@ public class RoomService {
             //Map 转成  JSONObject 字符串
             users.forEach((key, user) -> {
                 try {
-                    log.info("notifyUsersUpdate jsonObject.toString() = " +json.toJSONString());
-                    if (user.getSession().isOpen()) {
-                        user.getSession().getBasicRemote().sendText(json.toJSONString());
+                    log.info("notifyUsersUpdate jsonObject.toString() = " + json.toJSONString());
+                    Session userSession = user.getSession();
+                    if (userSession.isOpen()) {
+                        userSession.getBasicRemote().sendText(json.toJSONString());
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

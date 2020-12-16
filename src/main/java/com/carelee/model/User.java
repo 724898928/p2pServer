@@ -53,13 +53,17 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) &&
-                Objects.equals(name, user.name);
+        return id.equals(user.id) &&
+                name.equals(user.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name);
+        if (id == null)
+            return 0;
+        int result = 1;
+        result =id.hashCode()+ 31 * result + (name == null ? 0 : name.hashCode());
+        return result;
     }
 
     @Override

@@ -111,21 +111,23 @@ public class Socket {
             return;
         }
         log.info("退出的用户roomId =" + roomId + "  userId =" + userId);
-        Room room = RoomService.roomManager().get(roomId);
+        Room room = roomService.getRoom(roomId.get());
         if (null != room) {
             room.users().forEach((key, user) -> {
-                if (this.session != user.getSession()) {
+                Session userSession = user.getSession();
+                if (this.session != userSession) {
                     JSONObject map = new JSONObject();
                     map.put("type", MsgContant.LEAVE_ROOM);
                     try {
-                        user.getSession().getBasicRemote().sendText(map.toJSONString());
+                        if (userSession.isOpen()) {
+                            userSession.getBasicRemote().sendText(map.toJSONString());
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
             });
-            System.out.printf("删除User", userId);
-            room.users().remove(userId);
+            room.delUser(userId.get());
             roomService.notifyUsersUpdate(room.users());
         }
     }
