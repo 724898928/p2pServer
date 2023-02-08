@@ -15,4 +15,9 @@ public interface MsgContant {
     String HANGUP = "hangUp";         //挂断
     String LEAVE_ROOM = "leaveRoom";        //离开房间
     String UPDATE_USER_LIST = "updateUserList";  //更新房间用户列表
+
+    String REMOVE_STREAM = "removestream";    //流移除事件
+    String ADD_TREAM = "addstream";    //流添加事件
+    String NEW_CALL = "newCall";    //监听新的呼叫事件
+    String LOCAL_STREAM = "localstream";    //监听新本地流事件
 }

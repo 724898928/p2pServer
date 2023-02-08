@@ -9,7 +9,7 @@ package com.carelee.util;
  */
 public class StringUtils {
     public static boolean notEmpty(String str) {
-        return null != str && str.length() >= 0;
+        return null != str && str.length() >= 0 && !"null".equals(str);
     }
 
     public static String getStr(Object o){

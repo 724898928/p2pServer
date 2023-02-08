@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Room {
     private static final Logger log = LogManager.getLogger(Room.class);
     private String id;
-    private Map<String, User> userMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, User> userMap = new ConcurrentHashMap<>();
 
     public Room(String id) {
         this.id = id;
@@ -29,7 +29,11 @@ public class Room {
 
     public void addUser(User user) {
         if (null != user)
-            this.userMap.put(user.getId(), user);
+            this.userMap.put(user.getUserId(), user);
+    }
+    public void addUsers(ConcurrentHashMap<String,User> users) {
+        if (null != users)
+            this.userMap.putAll(users);
     }
 
     public Map<String, User> users() {

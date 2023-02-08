@@ -56,24 +56,31 @@ public class Socket {
         log.info("来自客户端的消息:" + message);
         if (StringUtils.notEmpty(message)) {
             JSONObject jsonObject = JSONObject.parseObject(message);
-            String type = StringUtils.getStr(jsonObject.get("type"));
+            String type = jsonObject.getString("type");
             JSONObject data = (JSONObject) jsonObject.get("data");
             if (null != data) {
-                String roomId = (String) data.get("roomId");
+                String roomId = (String) data.get("roomId");        //
                 Room room = RoomService.roomManager().get(roomId);
                 if (null == room) {
                     room = roomService.createRoom(roomId);
                 }
                 switch (type) {
                     case MsgContant.JOIN_ROOM:
-                        User user = roomService.onJoinRoom(data, room, session);
-                        log.info("Room = " + room.toString());
+                       User toUser = roomService.onJoinRoom(data, room, session);
+                        log.info(room.toString());
+                        // send offer notification
+                        // tell the from-user that the to-user has joined the room
                         roomService.notifyUsersUpdate(room.users());
                         break;
                     case MsgContant.OFFER:
-                    case MsgContant.ANSWER:
+                        roomService.onOffer(data, room, session);
+                     //   roomService.notifyUsersUpdate(room.users());
+                        break;
+//                    case MsgContant.ANSWER:
+//                        roomService.onAnswer(data, room, session);
+//                        break;
                     case MsgContant.CANDIDATE:
-                        roomService.onCandidate(data, room, jsonObject);
+                        roomService.onCandidate(data, room, session);
                         break;
                     case MsgContant.HANGUP:
                         roomService.onHangUp(data, room);
@@ -99,7 +106,7 @@ public class Socket {
                 User user = entry.getValue();
                 Session session = user.getSession();
                 if (this.session.equals(session)) {
-                    userId.set(user.getId());
+                    userId.set(user.getUserId());
                     roomId.set(room.getId());
                     break;
                 }

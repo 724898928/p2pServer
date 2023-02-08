@@ -20,19 +20,19 @@ public class application {
         SpringApplication.run(application.class,args);
     }
 
-    /**
-     * 创建wss协议接口
-     *
-     * @return
-     */
-    @Bean
-    public TomcatContextCustomizer tomcatContextCustomizer(){
-        System.out.println("tomcatContextCustomizer");
-        return new TomcatContextCustomizer() {
-            public void customize(Context context) {
-                context.addServletContainerInitializer(new WsSci(),null);
-            }
-        };
-
-    }
+//    /**
+//     * 创建wss协议接口
+//     *
+//     * @return
+//     */
+//    @Bean
+//    public TomcatContextCustomizer tomcatContextCustomizer(){
+//        System.out.println("tomcatContextCustomizer");
+//        return new TomcatContextCustomizer() {
+//            public void customize(Context context) {
+//                context.addServletContainerInitializer(new WsSci(),null);
+//            }
+//        };
+//
+//    }
 }

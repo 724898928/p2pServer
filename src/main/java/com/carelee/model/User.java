@@ -1,9 +1,9 @@
 package com.carelee.model;
 
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 
 import javax.websocket.Session;
-import java.util.Objects;
 
 /**
  * Package: com.carelee.model
@@ -13,23 +13,29 @@ import java.util.Objects;
  * Copyright: Copyright (c) 2040
  */
 public class User {
-    private String id;
+    private String userId;
     private String name;
     @JSONField(serialize = false)
     private Session session;
 
     public User(Object id, Object name, Session session) {
-        this.id = String.valueOf(id);
+        this.userId = String.valueOf(id);
         this.name = String.valueOf(name);
         this.session = session;
     }
 
-    public String getId() {
-        return id;
+    public User(JSONObject userMap, Session session) {
+        this.userId = (String) userMap.get("userId");
+        this.name = (String) userMap.get("name");
+        this.session = session;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getName() {
@@ -53,23 +59,23 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id.equals(user.id) &&
+        return userId.equals(user.userId) &&
                 name.equals(user.name);
     }
 
     @Override
     public int hashCode() {
-        if (id == null)
+        if (userId == null)
             return 0;
         int result = 1;
-        result =id.hashCode()+ 31 * result + (name == null ? 0 : name.hashCode());
+        result = userId.hashCode()+ 31 * result + (name == null ? 0 : name.hashCode());
         return result;
     }
 
     @Override
     public String toString() {
         return "User{" +
-                "id='" + id + '\'' +
+                "id='" + userId + '\'' +
                 ", name='" + name + '\'' +
                 ", session=" + session +
                 '}';

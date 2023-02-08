@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.carelee.model.Room;
 import com.carelee.model.User;
 import com.carelee.util.MsgContant;
+import com.carelee.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -34,15 +35,33 @@ public class RoomService {
     }
 
     public Room createRoom(String id) {
+        log.info("createRoom roomId:" + id);
         Room room = new Room(id);
         roomManager.put(id, room);
         return room;
     }
 
     public User onJoinRoom(JSONObject data, Room room, Session session) {
-        User user = new User(data.get("id"), data.get("name"), session);
+        //  User user = new User(data.get("id"), data.get("name"), session);
+        log.info("onJoinRoom data:" + data + " room:" + room);
+        String userId = String.valueOf(data.get("from"));
+        String userName = String.valueOf(data.get("fromName"));
+        String toUserId = String.valueOf(data.get("to"));
+        User user = new User(userId, userName, session);
         room.addUser(user);
-        return user;
+        User toUser = room.getUser(toUserId);
+        // tell the user that I am connecting is online;
+        if (null != toUser){
+            try {
+                JSONObject msg = new JSONObject();
+                msg.put("type", MsgContant.JOIN_ROOM);
+                msg.put("data", data);
+                session.getBasicRemote().sendText(msg.toJSONString());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return toUser;
     }
 
     public void deleteRoom(String id) {
@@ -53,66 +72,64 @@ public class RoomService {
         return roomManager;
     }
 
-    public void onCandidate(JSONObject data, Room room, JSONObject msg) {
-        // 读取目标to属性值
-        String to = String.valueOf(data.get("to"));
-        User toUser = room.getUser(to);
-        if (null != toUser) {
-            try {
-                Session session = toUser.getSession();
-                if (session.isOpen()){
-                    session.getBasicRemote().sendText(msg.toJSONString());
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            log.error("没有发现用户 [" + to + "]");
+    public void onCandidate(JSONObject data, Room room, Session session) {
+        log.info("onCandidate data:" + data + " room:" + room);
+        JSONObject candidate = (JSONObject) data.clone();
+        String to = data.getString("to");
+        JSONObject candidateMsg = new JSONObject();
+        candidateMsg.put("type", MsgContant.CANDIDATE);
+        candidateMsg.put("data", swap2From(candidate));
+        log.info("onCandidate candidateMsg:" + candidateMsg);
+        sendMsg2User(to, room, candidateMsg);
+        try {
+            candidateMsg.put("data", data);
+            log.info("onCandidate candidateMsg:" + candidateMsg);
+            session.getBasicRemote().sendText(candidateMsg.toJSONString());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
+    private void sendMsg2User(String userId, Room room, JSONObject msg) {
+        // 读取目标to属性值
+        log.info("sendMsg2User data: to :" + userId);
+        if (StringUtils.notEmpty(userId)) {
+            User toUser = room.getUser(userId);
+            log.info("sendMsg2User room.getUser toUser:" + toUser);
+            if (null != toUser) {
+                try {
+                    Session session = toUser.getSession();
+                    if (session.isOpen()) {
+                        session.getBasicRemote().sendText(msg.toJSONString());
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                log.error("没有发现用户 [" + userId + "]");
+            }
+        }
+    }
+
+
     public void onHangUp(JSONObject data, Room room) {
-        String sessionID = (String) data.get("sessionId");
-        String[] ids = sessionID.split("-");
-        User user = room.getUser(ids[0]);  // 自己
+        //  String sessionID = data.getString("sessionId");
+        //  String[] ids = sessionID.split("-");
+        String from = data.getString("from");// 自己
+        // User user = room.getUser(from);
+        String to = data.getString("to"); // 对方
         JSONObject json = new JSONObject();
         Map<String, Object> map = new HashMap();
-        if (null == user) {
-            log.error("用户 [" + ids[0] + "] 没有找到");
-            return;
-        } else {
-            try {
-                map.put("to", ids[0]);
-                map.put("sessionId", sessionID);
-                json.put("data", map);
-                json.put("type", MsgContant.HANGUP);
-                Session userSession = user.getSession();
-                if (userSession.isOpen()) {
-                    userSession.getBasicRemote().sendText(json.toJSONString());
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        User user1 = room.getUser(ids[1]);   // 对方
-        if (null != user1) {
-            map.put("to", ids[1]);
-            map.put("sessionId", sessionID);
-            json.put("data", map);
-            json.put("type", MsgContant.HANGUP);
-            try {
-                Session user1Session = user.getSession();
-                if (user1Session.isOpen()) {
-                    user1Session.getBasicRemote().sendText(json.toJSONString());
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            log.error("用户 [" + ids[1] + "] 没有找到");
-            return;
-        }
-
+        map.put("to", to);
+        // map.put("sessionId", sessionID);
+        json.put("data", map);
+        json.put("type", MsgContant.HANGUP);
+        sendMsg2User(from, room, json);
+        map.put("to", from);
+        //  map.put("sessionId", sessionID);
+        json.put("data", map);
+        json.put("type", MsgContant.HANGUP);
+        sendMsg2User(to, room, json);
     }
 
     /**
@@ -136,13 +153,67 @@ public class RoomService {
                 try {
                     log.info("notifyUsersUpdate jsonObject.toString() = " + json.toJSONString());
                     Session userSession = user.getSession();
-                    if (userSession.isOpen()) {
+                    if (null != userSession && userSession.isOpen()) {
                         userSession.getBasicRemote().sendText(json.toJSONString());
+                    } else {
+                        log.info("user = " + user + " userSession =null");
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             });
         }
+    }
+
+
+    public void onOffer(JSONObject data, Room room, Session session) {
+        JSONObject offer = (JSONObject) data.clone();
+        // 读取目标to属性值
+        String to = data.getString("to"); // 对方
+        JSONObject offerMsg = new JSONObject();
+        offerMsg.put("type", MsgContant.OFFER);
+        offerMsg.put("data", swap2From(data));
+        log.info("onOffer offerMsg ->" + offer.toString());
+        sendMsg2User(to, room, offerMsg);
+        // My session
+        try {
+            offerMsg.put("data", data);
+            log.info("onOffer data ->" + offerMsg.toString());
+            session.getBasicRemote().sendText(offerMsg.toJSONString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void onAnswer(JSONObject data, Room room, Session session) {
+        // 读取目标to属性值
+        JSONObject answer = (JSONObject) data.clone();
+        String to = data.getString("to"); // 对方
+        JSONObject answerMsg = new JSONObject();
+        answerMsg.put("type", MsgContant.ANSWER);
+        answerMsg.put("data", swap2From(answer));
+        log.info("onAnswer answerMsg ->" + answerMsg.toString());
+        sendMsg2User(to, room, answerMsg);
+        // My session
+        try {
+            answerMsg.put("data", data);
+            log.info("onAnswer data ->" + answerMsg.toString());
+            session.getBasicRemote().sendText(answerMsg.toJSONString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private JSONObject swap2From(JSONObject data){
+        String to = data.getString("to");
+        String toName = data.getString("toName");
+        String from = data.getString("from");
+        String fromName = data.getString("fromName");
+        data.put("to", from);
+        data.put("toName", fromName);
+        data.put("from", to);
+        data.put("fromName", toName);
+       return data;
     }
 }
