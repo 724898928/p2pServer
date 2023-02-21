@@ -1,8 +1,0 @@
-com/carelee/model/Room.class
-com/carelee/util/StringUtils.class
-com/carelee/config/WebSocketConfig.class
-com/carelee/util/MsgContant.class
-com/carelee/application.class
-com/carelee/websocket/Socket.class
-com/carelee/model/User.class
-com/carelee/service/RoomService.class
