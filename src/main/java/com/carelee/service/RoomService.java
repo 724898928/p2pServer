@@ -81,13 +81,13 @@ public class RoomService {
         candidateMsg.put("data", swap2From(candidate));
         log.info("onCandidate candidateMsg:" + candidateMsg);
         sendMsg2User(to, room, candidateMsg);
-        try {
-            candidateMsg.put("data", data);
-            log.info("onCandidate candidateMsg:" + candidateMsg);
-            session.getBasicRemote().sendText(candidateMsg.toJSONString());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            candidateMsg.put("data", data);
+//            log.info("onCandidate candidateMsg:" + candidateMsg);
+//            session.getBasicRemote().sendText(candidateMsg.toJSONString());
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     private void sendMsg2User(String userId, Room room, JSONObject msg) {
@@ -176,13 +176,13 @@ public class RoomService {
         log.info("onOffer offerMsg ->" + offer.toString());
         sendMsg2User(to, room, offerMsg);
         // My session
-        try {
-            offerMsg.put("data", data);
-            log.info("onOffer data ->" + offerMsg.toString());
-            session.getBasicRemote().sendText(offerMsg.toJSONString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            offerMsg.put("data", data);
+//            log.info("onOffer data ->" + offerMsg.toString());
+//            session.getBasicRemote().sendText(offerMsg.toJSONString());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
     }
 
@@ -196,13 +196,13 @@ public class RoomService {
         log.info("onAnswer answerMsg ->" + answerMsg.toString());
         sendMsg2User(to, room, answerMsg);
         // My session
-        try {
-            answerMsg.put("data", data);
-            log.info("onAnswer data ->" + answerMsg.toString());
-            session.getBasicRemote().sendText(answerMsg.toJSONString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            answerMsg.put("data", data);
+//            log.info("onAnswer data ->" + answerMsg.toString());
+//            session.getBasicRemote().sendText(answerMsg.toJSONString());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     private JSONObject swap2From(JSONObject data){
