@@ -118,18 +118,20 @@ public class RoomService {
         String from = data.getString("from");// 自己
         // User user = room.getUser(from);
         String to = data.getString("to"); // 对方
+
+        String sessionId = data.getString("sessionId"); // 对方
         JSONObject json = new JSONObject();
         Map<String, Object> map = new HashMap();
         map.put("to", to);
-        // map.put("sessionId", sessionID);
+        map.put("sessionId", sessionId);
         json.put("data", map);
         json.put("type", MsgContant.HANGUP);
         sendMsg2User(from, room, json);
-        map.put("to", from);
-        //  map.put("sessionId", sessionID);
-        json.put("data", map);
-        json.put("type", MsgContant.HANGUP);
-        sendMsg2User(to, room, json);
+//        map.put("to", from);
+//        //  map.put("sessionId", sessionID);
+//        json.put("data", map);
+//        json.put("type", MsgContant.HANGUP);
+//        sendMsg2User(to, room, json);
     }
 
     /**
@@ -210,10 +212,10 @@ public class RoomService {
         String toName = data.getString("toName");
         String from = data.getString("from");
         String fromName = data.getString("fromName");
-        data.put("to", from);
-        data.put("toName", fromName);
-        data.put("from", to);
-        data.put("fromName", toName);
+        data.put("to", to);
+        data.put("toName", toName);
+        data.put("from", from);
+        data.put("fromName", fromName);
        return data;
     }
 }
