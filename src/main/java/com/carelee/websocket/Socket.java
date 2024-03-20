@@ -67,23 +67,23 @@ public class Socket {
                 switch (type) {
                     case MsgContant.JOIN_ROOM:
                        User toUser = roomService.onJoinRoom(data, room, session);
-                        log.info(room.toString());
+                       // log.info(room.toString());
                         // send offer notification
                         // tell the from-user that the to-user has joined the room
                         roomService.notifyUsersUpdate(room.users());
                         break;
                     case MsgContant.OFFER:
                         roomService.onOffer(data, room, session);
-                     //   roomService.notifyUsersUpdate(room.users());
                         break;
-//                    case MsgContant.ANSWER:
-//                        roomService.onAnswer(data, room, session);
-//                        break;
+                    case MsgContant.ANSWER:
+                        roomService.onAnswer(data, room, session);
+                        break;
                     case MsgContant.CANDIDATE:
                         roomService.onCandidate(data, room, session);
                         break;
                     case MsgContant.HANGUP:
                         roomService.onHangUp(data, room);
+                       // roomService.notifyUsersUpdate(room.users());
                         break;
                     default:
                         log.info("未知的请求 %v");
@@ -97,6 +97,7 @@ public class Socket {
 
     @OnClose
     public void onClose() {
+        log.info("onClose:");
         webSocketSet.remove(this); //从set中删除
         subOnlineCount(); // 在线数-1
         AtomicReference<String> userId = new AtomicReference<>("");

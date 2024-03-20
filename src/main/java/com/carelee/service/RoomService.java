@@ -44,24 +44,18 @@ public class RoomService {
     public User onJoinRoom(JSONObject data, Room room, Session session) {
         //  User user = new User(data.get("id"), data.get("name"), session);
         log.info("onJoinRoom data:" + data + " room:" + room);
-        String userId = String.valueOf(data.get("from"));
+        String fromId = String.valueOf(data.get("from"));
         String userName = String.valueOf(data.get("fromName"));
         String toUserId = String.valueOf(data.get("to"));
-        User user = new User(userId, userName, session);
+        User user = new User(fromId, userName, session);
         room.addUser(user);
-        User toUser = room.getUser(toUserId);
         // tell the user that I am connecting is online;
-        if (null != toUser){
-            try {
-                JSONObject msg = new JSONObject();
-                msg.put("type", MsgContant.JOIN_ROOM);
-                msg.put("data", data);
-                session.getBasicRemote().sendText(msg.toJSONString());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return toUser;
+        JSONObject msg = new JSONObject();
+        msg.put("type", MsgContant.JOIN_ROOM);
+        data.put("peer",room.users().values().toArray());
+        msg.put("data", data);
+        sendMsg2Users(null, room, msg);
+        return user;
     }
 
     public void deleteRoom(String id) {
@@ -75,12 +69,12 @@ public class RoomService {
     public void onCandidate(JSONObject data, Room room, Session session) {
         log.info("onCandidate data:" + data + " room:" + room);
         JSONObject candidate = (JSONObject) data.clone();
-        String to = data.getString("to");
+        String from = data.getString("from");
         JSONObject candidateMsg = new JSONObject();
         candidateMsg.put("type", MsgContant.CANDIDATE);
-        candidateMsg.put("data", swap2From(candidate));
+        candidateMsg.put("data", candidate);
         log.info("onCandidate candidateMsg:" + candidateMsg);
-        sendMsg2User(to, room, candidateMsg);
+        sendMsg2Users(from, room, candidateMsg);
 //        try {
 //            candidateMsg.put("data", data);
 //            log.info("onCandidate candidateMsg:" + candidateMsg);
@@ -88,6 +82,29 @@ public class RoomService {
 //        } catch (IOException e) {
 //            throw new RuntimeException(e);
 //        }
+    }
+
+    private void sendMsg2Users(String fromId, Room room, JSONObject msg) {
+        // 读取目标to属性值
+        log.info("sendMsg2Users room: " + room);
+        if (null != room) {
+            Map<String, User> users = room.users();
+            users.forEach((userId,user) ->{
+                if (null != user && !userId.equals(fromId)) {
+                    try {
+                        log.info("sendMsg2Users room.user:" + user);
+                        Session session = user.getSession();
+                        if (session.isOpen()) {
+                            session.getBasicRemote().sendText(msg.toJSONString());
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    log.error("用户 [" + userId + "]");
+                }
+            });
+        }
     }
 
     private void sendMsg2User(String userId, Room room, JSONObject msg) {
@@ -118,7 +135,6 @@ public class RoomService {
         String from = data.getString("from");// 自己
         // User user = room.getUser(from);
         String to = data.getString("to"); // 对方
-
         String sessionId = data.getString("sessionId"); // 对方
         JSONObject json = new JSONObject();
         Map<String, Object> map = new HashMap();
@@ -126,7 +142,7 @@ public class RoomService {
         map.put("sessionId", sessionId);
         json.put("data", map);
         json.put("type", MsgContant.HANGUP);
-        sendMsg2User(from, room, json);
+        sendMsg2Users(from, room, json);
 //        map.put("to", from);
 //        //  map.put("sessionId", sessionID);
 //        json.put("data", map);
@@ -167,16 +183,16 @@ public class RoomService {
         }
     }
 
-
+    // from create offer for to
     public void onOffer(JSONObject data, Room room, Session session) {
         JSONObject offer = (JSONObject) data.clone();
         // 读取目标to属性值
-        String to = data.getString("to"); // 对方
+        String from = data.getString("from"); // 对方
         JSONObject offerMsg = new JSONObject();
         offerMsg.put("type", MsgContant.OFFER);
-        offerMsg.put("data", swap2From(data));
+        offerMsg.put("data", data);
         log.info("onOffer offerMsg ->" + offer.toString());
-        sendMsg2User(to, room, offerMsg);
+        sendMsg2Users(from, room, offerMsg);
         // My session
 //        try {
 //            offerMsg.put("data", data);
@@ -188,15 +204,16 @@ public class RoomService {
 
     }
 
+    // to create answer for from
     public void onAnswer(JSONObject data, Room room, Session session) {
         // 读取目标to属性值
         JSONObject answer = (JSONObject) data.clone();
         String to = data.getString("to"); // 对方
         JSONObject answerMsg = new JSONObject();
         answerMsg.put("type", MsgContant.ANSWER);
-        answerMsg.put("data", swap2From(answer));
-        log.info("onAnswer answerMsg ->" + answerMsg.toString());
-        sendMsg2User(to, room, answerMsg);
+        answerMsg.put("data", answer);
+        log.info("onAnswer answerMsg1 ->" + answerMsg.toString());
+        sendMsg2Users(to, room, answerMsg);
         // My session
 //        try {
 //            answerMsg.put("data", data);
@@ -212,10 +229,10 @@ public class RoomService {
         String toName = data.getString("toName");
         String from = data.getString("from");
         String fromName = data.getString("fromName");
-        data.put("to", to);
-        data.put("toName", toName);
-        data.put("from", from);
-        data.put("fromName", fromName);
+        data.put("to", from);
+        data.put("toName", fromName);
+        data.put("from", to);
+        data.put("fromName", toName);
        return data;
     }
 }
